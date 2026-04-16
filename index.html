@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="referrer" content="no-referrer">
 <title>ACNH Critter Almanac — Interactive Prototype</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -120,6 +121,37 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 /* Bottom nav hint */
 .bottom-hint{padding:8px;text-align:center;font-size:9px;color:#ccc;flex-shrink:0;background:#fff;border-top:1px solid #eee}
 
+/* API Status Bar */
+.api-status{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#E8F5E9;border-radius:10px;margin-bottom:12px;font-size:10px;font-weight:600;color:var(--green-dark)}
+.api-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;animation:pulse 2s infinite}
+.api-time{margin-left:auto;color:#999;font-weight:400}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Highlight price card */
+.highlight-card{border:2px solid var(--orange)!important;background:linear-gradient(135deg,#FFF8E1,#fff)!important;position:relative;overflow:hidden}
+.highlight-card::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.3) 50%,transparent 60%);animation:shimmer 3s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.animate-price{animation:countUp 1s ease-out}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Top Earner Card */
+.top-earner-card{background:linear-gradient(135deg,#FFF8E1,#FFE0B2);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:var(--card-shadow);display:flex;align-items:center;gap:12px;border:2px solid #FFB74D;cursor:pointer;transition:transform .2s}
+.top-earner-card:hover{transform:scale(1.02)}
+.top-earner-card img{width:56px;height:56px;object-fit:contain;border-radius:12px;background:#fff;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.top-earner-info{flex:1}
+.top-earner-info .te-name{font-size:14px;font-weight:900;color:var(--brown)}
+.top-earner-info .te-meta{font-size:10px;color:#999;margin-top:2px}
+.top-earner-price{text-align:right}
+.top-earner-price .te-base{font-size:16px;font-weight:900;color:var(--orange)}
+.top-earner-price .te-bonus{font-size:11px;color:var(--green);font-weight:700}
+.top-earner-price .te-bonus-label{font-size:9px;color:#999}
+
+/* Price comparison bar */
+.price-compare-bar{margin-top:6px;display:flex;gap:2px;align-items:center}
+.pcb-base{height:6px;background:var(--orange);border-radius:3px;transition:width .5s}
+.pcb-bonus{height:6px;background:var(--green);border-radius:3px;transition:width .5s}
+.pcb-label{font-size:8px;color:#999;margin-left:4px;white-space:nowrap}
+
 /* Scrollbar */
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:var(--green-light);border-radius:3px}
@@ -144,12 +176,23 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
   <div class="content">
     <!-- ========== OVERVIEW ========== -->
     <div class="tab-page active" id="page-overview">
+      <!-- API Connection Status -->
+      <div class="api-status" id="apiStatus">
+        <span class="api-dot"></span>
+        <span>Connected to ACNH Database</span>
+        <span class="api-time" id="apiTime">Updated just now</span>
+      </div>
+
       <div class="stat-grid">
         <div class="stat-card"><div class="s-icon">🦋</div><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
         <div class="stat-card"><div class="s-icon">🐟</div><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
         <div class="stat-card"><div class="s-icon">📅</div><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
-        <div class="stat-card"><div class="s-icon">💰</div><div class="s-num">15,000</div><div class="s-label">Highest Price</div></div>
+        <div class="stat-card highlight-card" id="highPriceCard"><div class="s-icon">💰</div><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
       </div>
+
+      <!-- Top Earner This Month (dynamic) -->
+      <div class="sec-title">🌟 Top Earner This Month</div>
+      <div class="top-earner-card" id="topEarnerCard"></div>
 
       <div class="sec-title">📊 Monthly Availability</div>
       <div class="chart-card">
@@ -170,6 +213,28 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
         </div>
         <div class="chart-wrap"><canvas id="chartPrice"></canvas></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Stacked bar chart shows the proportion of bugs vs. fish within each price bracket. Helps players quickly identify which category holds more high-value species.</div>
+      </div>
+
+      <!-- Flick & CJ Price Comparison -->
+      <div class="sec-title">🔥 Flick & CJ Bonus Price</div>
+      <div class="chart-card">
+        <h3>Regular vs. Special Visitor Prices</h3>
+        <div class="chart-sub">Flick buys bugs at 1.5× · CJ buys fish at 1.5×</div>
+        <div class="toggle-group">
+          <span class="toggle-pill bonus-pill active" data-bonus="top5">Top 5</span>
+          <span class="toggle-pill bonus-pill" data-bonus="top10">Top 10</span>
+        </div>
+        <div class="chart-wrap" style="max-height:280px"><canvas id="chartBonus"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Grouped bar chart comparing base Nook price vs. Flick/CJ 1.5× bonus. Helps players prioritize which critters to save for special visitors — the price gap grows dramatically for rare species.</div>
+      </div>
+
+      <!-- Price Trend Comparison -->
+      <div class="sec-title">📈 Monthly Price Potential</div>
+      <div class="chart-card">
+        <h3>Maximum Earnable Bells by Month</h3>
+        <div class="chart-sub">Line Chart · Total potential if all available species sold</div>
+        <div class="chart-wrap"><canvas id="chartTrend"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Line chart reveals seasonal earning potential. Summer months (Jun-Aug) show peak value — players should focus farming during these high-yield windows.</div>
       </div>
 
       <div class="sec-title">📍 Location Distribution</div>
@@ -248,7 +313,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
   <div class="detail-panel">
     <div class="detail-header">
       <button class="detail-close" id="detailClose">✕</button>
-      <img id="detailImg" src="" alt="">
+      <img id="detailImg" src="" alt="" referrerpolicy="no-referrer">
       <h2 id="detailName"></h2>
       <div class="d-zh" id="detailZh"></div>
     </div>
@@ -502,7 +567,7 @@ function renderList(containerId, arr, type) {
   const sorted = [...arr].sort((a, b) => b.price - a.price);
   document.getElementById(containerId).innerHTML = sorted.map(c => `
     <div class="critter-card" onclick="showDetail('${type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
-      <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${type==='bug'?'🦋':'🐟'}</text></svg>'">
+      <img src="${c.img}" alt="${c.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${type==='bug'?'🦋':'🐟'}</text></svg>'">
       <div class="critter-info">
         <div class="c-name">${type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
         <div class="c-name-zh">${c.rarity}</div>
@@ -543,7 +608,7 @@ function renderExploreList() {
   const avail = ALL.filter(c => c.n.includes(currentMonth)).sort((a, b) => b.price - a.price);
   document.getElementById('exploreList').innerHTML = avail.map(c => `
     <div class="critter-card" onclick="showDetail('${c.type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
-      <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${c.type==='bug'?'🦋':'🐟'}</text></svg>'">
+      <img src="${c.img}" alt="${c.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${c.type==='bug'?'🦋':'🐟'}</text></svg>'">
       <div class="critter-info">
         <div class="c-name">${c.type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
         <div class="c-name-zh">${c.rarity}</div>
@@ -593,6 +658,131 @@ drawScatter();
 
 // Update stat
 document.getElementById('stat-month').textContent = countForMonth(currentMonth);
+
+// ================================================================
+// DYNAMIC: Top Earner This Month + Highest Price
+// ================================================================
+function updateTopEarner() {
+  const m = currentMonth;
+  const avail = ALL.filter(c => c.n.includes(m)).sort((a, b) => b.price - a.price);
+  const top = avail[0];
+  if (!top) return;
+
+  // Update highest price card dynamically
+  document.getElementById('stat-highprice').textContent = top.price.toLocaleString();
+  document.getElementById('stat-highname').innerHTML = `${MONTHS[m-1]} Top: ${top.name}`;
+
+  // Render top earner spotlight
+  const bonus = Math.floor(top.price * 1.5);
+  const barMax = bonus;
+  document.getElementById('topEarnerCard').innerHTML = `
+    <img src="${top.img}" alt="${top.name}" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${top.type==='bug'?'🦋':'🐟'}</text></svg>'">
+    <div class="top-earner-info">
+      <div class="te-name">${top.type==='bug'?'🦋':'🐟'} ${top.name}</div>
+      <div class="te-meta">${top.rarity} · ${top.loc} · ${top.time}</div>
+      <div class="price-compare-bar">
+        <div class="pcb-base" style="width:${(top.price/barMax)*100}%"></div>
+        <div class="pcb-bonus" style="width:${((bonus-top.price)/barMax)*100}%"></div>
+        <div class="pcb-label">+${(bonus-top.price).toLocaleString()} bonus</div>
+      </div>
+    </div>
+    <div class="top-earner-price">
+      <div class="te-base">${top.price.toLocaleString()} <small>Bells</small></div>
+      <div class="te-bonus">${bonus.toLocaleString()} Bells</div>
+      <div class="te-bonus-label">${top.type==='bug'?'Flick':'CJ'} price (1.5×)</div>
+    </div>
+  `;
+  document.getElementById('topEarnerCard').onclick = () => showDetail(top.type, top.id);
+}
+updateTopEarner();
+
+// ================================================================
+// CHART: Flick & CJ Bonus Price Comparison
+// ================================================================
+let bonusChart;
+function drawBonusChart(count) {
+  const topBugs = [...BUGS].sort((a,b) => b.price - a.price).slice(0, count);
+  const topFish = [...FISH].sort((a,b) => b.price - a.price).slice(0, count);
+  const combined = [...topBugs.map(c=>({...c,type:'bug'})), ...topFish.map(c=>({...c,type:'fish'}))]
+    .sort((a,b) => b.price - a.price).slice(0, count);
+
+  if (bonusChart) bonusChart.destroy();
+  bonusChart = new Chart(document.getElementById('chartBonus'), {
+    type: 'bar',
+    data: {
+      labels: combined.map(c => c.name),
+      datasets: [
+        { label: 'Base Price', data: combined.map(c => c.price), backgroundColor: '#FFB74D', borderRadius: 4 },
+        { label: 'Flick/CJ 1.5×', data: combined.map(c => Math.floor(c.price * 1.5)), backgroundColor: '#4DA651', borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() + ' Bells' } }
+      },
+      scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { callback: v => (v/1000)+'K' } }, y: { ...noGrid, ticks: { font: { size: 9 } } } }
+    }
+  });
+}
+drawBonusChart(5);
+
+document.querySelectorAll('.bonus-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.bonus-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    drawBonusChart(parseInt(pill.dataset.bonus.replace('top','')));
+  });
+});
+
+// ================================================================
+// CHART: Monthly Price Potential (Line Chart)
+// ================================================================
+function monthlyPotential(arr) {
+  return MONTHS.map((_, i) => {
+    const m = i + 1;
+    return arr.filter(c => c.n.includes(m)).reduce((sum, c) => sum + c.price, 0);
+  });
+}
+new Chart(document.getElementById('chartTrend'), {
+  type: 'line',
+  data: {
+    labels: MONTHS,
+    datasets: [
+      { label: '🦋 Bugs Total', data: monthlyPotential(BUGS), borderColor: '#81C784', backgroundColor: 'rgba(129,199,132,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#81C784' },
+      { label: '🐟 Fish Total', data: monthlyPotential(FISH), borderColor: '#F0962A', backgroundColor: 'rgba(240,150,42,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#F0962A' },
+      { label: '📊 Combined', data: MONTHS.map((_, i) => monthlyPotential(BUGS)[i] + monthlyPotential(FISH)[i]), borderColor: '#2E7D32', borderDash: [4,4], fill: false, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#2E7D32' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: true,
+    scales: {
+      x: noGrid,
+      y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { callback: v => (v/1000)+'K' } }
+    },
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() + ' Bells' } }
+    }
+  }
+});
+
+// ================================================================
+// API STATUS SIMULATION — shows "live" connection indicator
+// ================================================================
+function updateApiTime() {
+  const now = new Date();
+  document.getElementById('apiTime').textContent = 'Updated ' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+updateApiTime();
+setInterval(updateApiTime, 60000);
+
+// When month changes, update top earner too
+const origSelectMonth = selectMonth;
+selectMonth = function(m) {
+  origSelectMonth(m);
+  updateTopEarner();
+};
 
 // ================================================================
 // DETAIL OVERLAY
