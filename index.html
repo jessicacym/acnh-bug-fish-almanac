@@ -56,7 +56,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 .chart-card h3{font-size:13px;font-weight:800;color:var(--brown);margin-bottom:4px}
 .chart-card .chart-sub{font-size:10px;color:#999;margin-bottom:10px}
 .chart-wrap{position:relative;width:100%;max-height:220px}
-.chart-rationale{font-size:10px;color:var(--orange);margin-top:8px;padding:6px 10px;background:#FFF8E1;border-radius:8px;line-height:1.4}
+.chart-rationale{display:none}
 
 /* Toggle buttons */
 .toggle-group{display:flex;gap:4px;margin-bottom:10px;justify-content:center}
@@ -116,7 +116,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 .heatmap-table td{padding:3px;text-align:center}
 .hm-name{text-align:left!important;font-weight:700;color:var(--brown);white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis;font-size:8px}
 .hm-dot{display:inline-block;width:14px;height:14px;border-radius:3px;background:#eee}
-.hm-dot.on{background:#90CAF9}.hm-dot.hot{background:#FF9800}.hm-dot.peak{background:#F44336}
+.hm-dot.on{background:#A5D6A7}.hm-dot.hot{background:#43A047}.hm-dot.peak{background:#1B5E20}
 
 /* Bottom nav hint */
 .bottom-hint{padding:8px;text-align:center;font-size:9px;color:#ccc;flex-shrink:0;background:#fff;border-top:1px solid #eee}
@@ -181,17 +181,17 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=bugs]').click()"><div class="s-icon">🦋</div><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
-        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=fish]').click()"><div class="s-icon">🐟</div><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
-        <div class="stat-card"><div class="s-icon">📅</div><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
-        <div class="stat-card" id="highPriceCard"><div class="s-icon">💰</div><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=bugs]').click()"><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=fish]').click()"><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
+        <div class="stat-card"><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
+        <div class="stat-card" id="highPriceCard"><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
       </div>
 
       <!-- Top Earner This Month (dynamic) -->
-      <div class="sec-title">🌟 Top Earner This Month</div>
+      <div class="sec-title">Top Earner This Month</div>
       <div class="top-earner-card" id="topEarnerCard"></div>
 
-      <div class="sec-title">📊 Monthly Availability</div>
+      <div class="sec-title">Monthly Availability</div>
       <div class="chart-card">
         <h3>Monthly Catchable Critters (Northern Hemisphere)</h3>
         <div class="chart-sub">Grouped Bar · Bugs vs Fish by Month</div>
@@ -199,7 +199,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Grouped bar chart chosen to enable direct side-by-side comparison of bug vs. fish availability each month. Reveals seasonal peak in Jun-Aug when the most species are active.</div>
       </div>
 
-      <div class="sec-title">💰 Price Distribution</div>
+      <div class="sec-title">Price Distribution</div>
       <div class="chart-card">
         <h3>Price Bracket Distribution</h3>
         <div class="chart-sub">Stacked Bar · Price Brackets</div>
@@ -213,7 +213,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
       </div>
 
       <!-- Flick & CJ Price Comparison -->
-      <div class="sec-title">🔥 Flick & CJ Bonus Price</div>
+      <div class="sec-title">Flick & CJ Bonus Price</div>
       <div class="chart-card">
         <h3>Regular vs. Special Visitor Prices</h3>
         <div class="chart-sub">Flick buys bugs at 1.5× · CJ buys fish at 1.5×</div>
@@ -226,7 +226,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
       </div>
 
       <!-- Price Trend Comparison -->
-      <div class="sec-title">📈 Monthly Price Potential</div>
+      <div class="sec-title">Monthly Price Potential</div>
       <div class="chart-card">
         <h3>Maximum Earnable Bells by Month</h3>
         <div class="chart-sub">Line Chart · Total potential if all available species sold</div>
@@ -234,7 +234,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Line chart reveals seasonal earning potential. Summer months (Jun-Aug) show peak value — players should focus farming during these high-yield windows.</div>
       </div>
 
-      <div class="sec-title">📍 Location Distribution</div>
+      <div class="sec-title">Location Distribution</div>
       <div class="chart-card">
         <h3>Bug vs. Fish Spawn Locations</h3>
         <div class="chart-sub">Doughnut · Spawn Location Comparison</div>
@@ -248,51 +248,51 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 
     <!-- ========== BUGS ========== -->
     <div class="tab-page" id="page-bugs">
-      <div class="sec-title">🏆 Top 10 Most Valuable Bugs</div>
+      <div class="sec-title">Top 10 Most Valuable Bugs</div>
       <div class="chart-card">
-        <div class="chart-wrap"><canvas id="chartTopBugs"></canvas></div>
+        <div class="chart-wrap" style="max-height:none;height:380px"><canvas id="chartTopBugs" height="380"></canvas></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Horizontal bar chart sorted by price for instant rank comparison. Horizontal orientation accommodates longer critter names while keeping the value axis readable.</div>
       </div>
 
-      <div class="sec-title">📅 Seasonal Availability</div>
+      <div class="sec-title">Seasonal Availability</div>
       <div class="chart-card">
         <h3>Bug Availability Heatmap (Northern Hemisphere)</h3>
         <div class="heatmap-scroll"><table class="heatmap-table" id="heatmapBugs"></table></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Heatmap provides an at-a-glance view of year-round availability per species. Color intensity encodes price tier (darker = more valuable), linking two dimensions in one compact view.</div>
       </div>
 
-      <div class="sec-title">🦋 All Bugs</div>
+      <div class="sec-title">All Bugs</div>
       <div class="critter-list" id="bugsList"></div>
     </div>
 
     <!-- ========== FISH ========== -->
     <div class="tab-page" id="page-fish">
-      <div class="sec-title">🏆 Top 10 Most Valuable Fish</div>
+      <div class="sec-title">Top 10 Most Valuable Fish</div>
       <div class="chart-card">
-        <div class="chart-wrap"><canvas id="chartTopFish"></canvas></div>
+        <div class="chart-wrap" style="max-height:none;height:380px"><canvas id="chartTopFish" height="380"></canvas></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Horizontal bar chart mirrors the bug ranking format for consistency. Enables players to quickly identify the most lucrative fish species for Bell farming.</div>
       </div>
 
-      <div class="sec-title">📅 Seasonal Availability</div>
+      <div class="sec-title">Seasonal Availability</div>
       <div class="chart-card">
         <h3>Fish Availability Heatmap (Northern Hemisphere)</h3>
         <div class="heatmap-scroll"><table class="heatmap-table" id="heatmapFish"></table></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Heatmap displays year-round fish availability. Darker cells indicate higher-value species, letting players spot both timing and profit opportunities simultaneously.</div>
       </div>
 
-      <div class="sec-title">🐟 All Fish</div>
+      <div class="sec-title">All Fish</div>
       <div class="critter-list" id="fishList"></div>
     </div>
 
     <!-- ========== EXPLORE ========== -->
     <div class="tab-page" id="page-explore">
-      <div class="sec-title">🔍 Select Month</div>
+      <div class="sec-title">Select Month</div>
       <div class="month-grid" id="monthGrid"></div>
 
-      <div class="sec-title">📋 Available This Month <span id="exploreMonthLabel">April</span></div>
+      <div class="sec-title">Available This Month <span id="exploreMonthLabel">April</span></div>
       <div class="critter-list" id="exploreList"></div>
 
-      <div class="sec-title" style="margin-top:20px">💎 Value vs. Rarity</div>
+      <div class="sec-title" style="margin-top:20px">Value vs. Rarity</div>
       <div class="chart-card">
         <h3>Price vs. Months Available</h3>
         <div class="chart-sub">Scatter Plot · Upper-left = Rare &amp; Valuable</div>
@@ -302,7 +302,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
     </div>
   </div>
 
-  <div class="bottom-hint">VDES39915 · Project 3 · Data: Animal Crossing Wiki (Fandom) · Built with Chart.js 4.4.1</div>
+  <div class="bottom-hint"></div>
 </div>
 
 <!-- Detail overlay -->
@@ -519,23 +519,32 @@ doughnut('chartLocFish', locDist(FISH), ['#FF9800','#FFA726','#E65100','#FFE0B2'
 // ================================================================
 // BUGS/FISH: Top 10 Horizontal Bar
 // ================================================================
-function topChart(canvasId, arr, color) {
+function priceColor(price) {
+  if (price >= 12000) return '#0D47A1';      // darkest blue — highest tier
+  if (price >= 8000) return '#1565C0';        // dark blue
+  if (price >= 5000) return '#1976D2';        // medium-dark blue
+  if (price >= 3000) return '#2196F3';        // medium blue
+  if (price >= 1000) return '#42A5F5';        // light blue
+  return '#90CAF9';                           // lightest blue — below average
+}
+function topChart(canvasId, arr) {
   const top = [...arr].sort((a, b) => b.price - a.price).slice(0, 10).reverse();
+  const colors = top.map(c => priceColor(c.price));
   new Chart(document.getElementById(canvasId), {
     type: 'bar',
     data: {
       labels: top.map(c => c.name),
-      datasets: [{ data: top.map(c => c.price), backgroundColor: color, borderRadius: 4 }]
+      datasets: [{ data: top.map(c => c.price), backgroundColor: colors, borderRadius: 4 }]
     },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' } }, y: { ...noGrid, ticks: { font: { size: 9 } } } }
+      scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Bells', font: { size: 11 } } }, y: { ...noGrid, ticks: { font: { size: 10 }, autoSkip: false } } }
     }
   });
 }
-topChart('chartTopBugs', BUGS, '#2196F3');
-topChart('chartTopFish', FISH, '#F44336');
+topChart('chartTopBugs', BUGS);
+topChart('chartTopFish', FISH);
 
 // ================================================================
 // HEATMAPS
