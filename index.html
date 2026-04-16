@@ -183,7 +183,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
       <div class="stat-grid">
         <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=bugs]').click()"><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
         <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=fish]').click()"><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
-        <div class="stat-card"><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=explore]').click()"><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
         <div class="stat-card" id="highPriceCard"><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
       </div>
 
@@ -719,7 +719,7 @@ function drawBonusChart(count) {
       labels: combined.map(c => c.name),
       datasets: [
         { label: 'Base Price', data: combined.map(c => c.price), backgroundColor: '#FFC107', borderRadius: 4 },
-        { label: 'Flick/CJ 1.5×', data: combined.map(c => Math.floor(c.price * 1.5)), backgroundColor: '#F44336', borderRadius: 4 }
+        { label: 'Flick/CJ 1.5×', data: combined.map(c => Math.floor(c.price * 1.5)), backgroundColor: '#1976D2', borderRadius: 4 }
       ]
     },
     options: {
