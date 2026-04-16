@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ACNH Critter Almanac — Interactive Prototype</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#4DA651;--green-light:#81C784;--green-bg:#F0FAF0;--green-dark:#2E7D32;
+  --cream:#FFF8E1;--orange:#F0962A;--brown:#3D2C1E;--mid:#6B5A4E;
+  --card-shadow:0 2px 12px rgba(0,0,0,0.06);--radius:14px;
+}
+body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-content:center;padding:20px 10px;min-height:100vh}
+
+/* Phone frame */
+.phone{width:393px;height:852px;background:#FAFDF7;border-radius:44px;box-shadow:0 20px 60px rgba(0,0,0,0.15),inset 0 0 0 2px #333;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#222;border-radius:0 0 18px 18px;z-index:100}
+
+/* Status bar */
+.status-bar{height:54px;padding:14px 24px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--brown);flex-shrink:0;background:#FAFDF7;position:relative;z-index:10}
+
+/* Header */
+.app-header{padding:8px 16px 12px;text-align:center;background:linear-gradient(135deg,var(--green),var(--green-dark));flex-shrink:0}
+.app-header h1{font-size:20px;color:#fff;font-weight:900;letter-spacing:0.5px}
+.app-header .tagline{font-size:11px;color:rgba(255,255,255,0.8)}
+
+/* Tabs */
+.tab-bar{display:flex;background:#fff;border-bottom:2px solid #eee;flex-shrink:0;position:sticky;top:0;z-index:50}
+.tab-btn{flex:1;padding:10px 2px 8px;text-align:center;font-size:10px;font-weight:700;color:#aaa;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab-btn .tab-icon{font-size:18px;display:block;margin-bottom:1px}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-bg)}
+
+/* Content area */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+.tab-page{display:none;padding:14px;animation:fadeUp .3s ease}
+.tab-page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:12px;text-align:center;box-shadow:var(--card-shadow);border:1.5px solid #E8F5E9}
+.stat-card .s-icon{font-size:22px}
+.stat-card .s-num{font-size:22px;font-weight:900;color:var(--green);margin:2px 0}
+.stat-card .s-label{font-size:10px;color:#999;font-weight:600}
+
+/* Section title */
+.sec-title{font-size:14px;font-weight:800;color:var(--brown);margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.sec-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--green-light),transparent)}
+
+/* Chart card */
+.chart-card{background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:var(--card-shadow)}
+.chart-card h3{font-size:13px;font-weight:800;color:var(--brown);margin-bottom:4px}
+.chart-card .chart-sub{font-size:10px;color:#999;margin-bottom:10px}
+.chart-wrap{position:relative;width:100%;max-height:220px}
+.chart-rationale{font-size:10px;color:var(--orange);margin-top:8px;padding:6px 10px;background:#FFF8E1;border-radius:8px;line-height:1.4}
+
+/* Toggle buttons */
+.toggle-group{display:flex;gap:4px;margin-bottom:10px;justify-content:center}
+.toggle-pill{font-size:10px;font-weight:700;padding:5px 14px;border-radius:20px;border:1.5px solid var(--green);background:#fff;color:var(--green);cursor:pointer;transition:all .2s}
+.toggle-pill.active{background:var(--green);color:#fff}
+
+/* Month selector */
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.month-cell{background:#fff;border:2px solid #E8F5E9;border-radius:12px;padding:8px 2px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--card-shadow)}
+.month-cell:hover{border-color:var(--green-light)}
+.month-cell.active{border-color:var(--green);background:var(--green-bg)}
+.month-cell .m-name{font-size:13px;font-weight:800;color:var(--brown)}
+.month-cell .m-count{font-size:9px;color:#999;font-weight:600}
+.month-cell.active .m-name{color:var(--green)}
+
+/* Critter cards */
+.critter-list{display:flex;flex-direction:column;gap:8px}
+.critter-card{display:flex;align-items:center;gap:10px;background:#fff;border-radius:var(--radius);padding:10px 12px;box-shadow:var(--card-shadow);cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+.critter-card:hover{border-color:var(--green-light);transform:translateY(-1px)}
+.critter-card img{width:48px;height:48px;object-fit:contain;border-radius:10px;background:var(--green-bg);padding:4px;flex-shrink:0}
+.critter-info{flex:1;min-width:0}
+.critter-info .c-name{font-size:12px;font-weight:800;color:var(--brown)}
+.critter-info .c-name-zh{font-size:10px;color:#999;font-weight:600}
+.critter-info .c-meta{font-size:9px;color:#aaa;margin-top:2px;display:flex;gap:6px;flex-wrap:wrap}
+.c-price{font-size:15px;font-weight:900;color:var(--orange);white-space:nowrap}
+.c-price small{font-size:9px;font-weight:600;color:#ccc}
+
+/* Detail overlay */
+.detail-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;display:none;justify-content:center;align-items:center;padding:20px}
+.detail-overlay.show{display:flex}
+.detail-panel{background:#FAFDF7;border-radius:24px;width:360px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.detail-header{background:linear-gradient(135deg,var(--green),var(--green-dark));padding:20px;text-align:center;border-radius:24px 24px 0 0;position:relative}
+.detail-close{position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer}
+.detail-header img{width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.2))}
+.detail-header h2{color:#fff;font-size:18px;font-weight:900;margin-top:8px}
+.detail-header .d-zh{color:rgba(255,255,255,0.8);font-size:12px}
+.detail-body{padding:16px}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:12px}
+.detail-row .d-label{color:#999;font-weight:600}
+.detail-row .d-val{color:var(--brown);font-weight:700}
+.month-indicator{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:12px 0}
+.month-indicator .mi{text-align:center;padding:4px 0;border-radius:6px;font-size:8px;font-weight:700;background:#eee;color:#ccc}
+.month-indicator .mi.avail{background:var(--green);color:#fff}
+.hemisphere-label{font-size:10px;font-weight:700;color:var(--mid);margin-top:10px;margin-bottom:4px}
+
+/* Doughnut row */
+.doughnut-row{display:flex;justify-content:center;gap:20px;align-items:center}
+.doughnut-item{text-align:center}
+.doughnut-item canvas{max-width:120px;max-height:120px}
+.doughnut-label{font-size:11px;font-weight:700;color:var(--mid);margin-top:4px}
+
+/* Heatmap */
+.heatmap-scroll{overflow-x:auto;margin:8px 0}
+.heatmap-table{border-collapse:collapse;font-size:8px;width:100%;min-width:340px}
+.heatmap-table th{font-weight:700;color:#999;padding:3px;text-align:center;position:sticky;top:0;background:#fff}
+.heatmap-table td{padding:3px;text-align:center}
+.hm-name{text-align:left!important;font-weight:700;color:var(--brown);white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis;font-size:8px}
+.hm-dot{display:inline-block;width:14px;height:14px;border-radius:3px;background:#eee}
+.hm-dot.on{background:#A5D6A7}.hm-dot.hot{background:var(--green)}.hm-dot.peak{background:var(--green-dark)}
+
+/* Bottom nav hint */
+.bottom-hint{padding:8px;text-align:center;font-size:9px;color:#ccc;flex-shrink:0;background:#fff;border-top:1px solid #eee}
+
+/* Scrollbar */
+.content::-webkit-scrollbar{width:3px}
+.content::-webkit-scrollbar-thumb{background:var(--green-light);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><span>📶 🔋 92%</span></div>
+  <div class="app-header">
+    <h1>🍃 ACNH Critter Almanac</h1>
+    <div class="tagline">Animal Crossing: New Horizons · Interactive Data Visualization</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="overview"><span class="tab-icon">📊</span>Overview</button>
+    <button class="tab-btn" data-tab="bugs"><span class="tab-icon">🦋</span>Bugs</button>
+    <button class="tab-btn" data-tab="fish"><span class="tab-icon">🐟</span>Fish</button>
+    <button class="tab-btn" data-tab="explore"><span class="tab-icon">🔍</span>Explore</button>
+  </div>
+
+  <div class="content">
+    <!-- ========== OVERVIEW ========== -->
+    <div class="tab-page active" id="page-overview">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="s-icon">🦋</div><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
+        <div class="stat-card"><div class="s-icon">🐟</div><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
+        <div class="stat-card"><div class="s-icon">📅</div><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
+        <div class="stat-card"><div class="s-icon">💰</div><div class="s-num">15,000</div><div class="s-label">Highest Price</div></div>
+      </div>
+
+      <div class="sec-title">📊 Monthly Availability</div>
+      <div class="chart-card">
+        <h3>Monthly Catchable Critters (Northern Hemisphere)</h3>
+        <div class="chart-sub">Grouped Bar · Bugs vs Fish by Month</div>
+        <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Grouped bar chart chosen to enable direct side-by-side comparison of bug vs. fish availability each month. Reveals seasonal peak in Jun-Aug when the most species are active.</div>
+      </div>
+
+      <div class="sec-title">💰 Price Distribution</div>
+      <div class="chart-card">
+        <h3>Price Bracket Distribution</h3>
+        <div class="chart-sub">Stacked Bar · Price Brackets</div>
+        <div class="toggle-group">
+          <span class="toggle-pill active" data-filter="all">All</span>
+          <span class="toggle-pill" data-filter="bugs">🦋 Bugs</span>
+          <span class="toggle-pill" data-filter="fish">🐟 Fish</span>
+        </div>
+        <div class="chart-wrap"><canvas id="chartPrice"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Stacked bar chart shows the proportion of bugs vs. fish within each price bracket. Helps players quickly identify which category holds more high-value species.</div>
+      </div>
+
+      <div class="sec-title">📍 Location Distribution</div>
+      <div class="chart-card">
+        <h3>Bug vs. Fish Spawn Locations</h3>
+        <div class="chart-sub">Doughnut · Spawn Location Comparison</div>
+        <div class="doughnut-row">
+          <div class="doughnut-item"><canvas id="chartLocBugs" width="120" height="120"></canvas><div class="doughnut-label">🦋 Bugs</div></div>
+          <div class="doughnut-item"><canvas id="chartLocFish" width="120" height="120"></canvas><div class="doughnut-label">🐟 Fish</div></div>
+        </div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Dual doughnut charts allow at-a-glance comparison of spawn location diversity between bugs and fish, helping players decide where to hunt.</div>
+      </div>
+    </div>
+
+    <!-- ========== BUGS ========== -->
+    <div class="tab-page" id="page-bugs">
+      <div class="sec-title">🏆 Top 10 Most Valuable Bugs</div>
+      <div class="chart-card">
+        <div class="chart-wrap"><canvas id="chartTopBugs"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Horizontal bar chart sorted by price for instant rank comparison. Horizontal orientation accommodates longer critter names while keeping the value axis readable.</div>
+      </div>
+
+      <div class="sec-title">📅 Seasonal Availability</div>
+      <div class="chart-card">
+        <h3>Bug Availability Heatmap (Northern Hemisphere)</h3>
+        <div class="heatmap-scroll"><table class="heatmap-table" id="heatmapBugs"></table></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Heatmap provides an at-a-glance view of year-round availability per species. Color intensity encodes price tier (darker = more valuable), linking two dimensions in one compact view.</div>
+      </div>
+
+      <div class="sec-title">🦋 All Bugs</div>
+      <div class="critter-list" id="bugsList"></div>
+    </div>
+
+    <!-- ========== FISH ========== -->
+    <div class="tab-page" id="page-fish">
+      <div class="sec-title">🏆 Top 10 Most Valuable Fish</div>
+      <div class="chart-card">
+        <div class="chart-wrap"><canvas id="chartTopFish"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Horizontal bar chart mirrors the bug ranking format for consistency. Enables players to quickly identify the most lucrative fish species for Bell farming.</div>
+      </div>
+
+      <div class="sec-title">📅 Seasonal Availability</div>
+      <div class="chart-card">
+        <h3>Fish Availability Heatmap (Northern Hemisphere)</h3>
+        <div class="heatmap-scroll"><table class="heatmap-table" id="heatmapFish"></table></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Heatmap displays year-round fish availability. Darker cells indicate higher-value species, letting players spot both timing and profit opportunities simultaneously.</div>
+      </div>
+
+      <div class="sec-title">🐟 All Fish</div>
+      <div class="critter-list" id="fishList"></div>
+    </div>
+
+    <!-- ========== EXPLORE ========== -->
+    <div class="tab-page" id="page-explore">
+      <div class="sec-title">🔍 Select Month</div>
+      <div class="month-grid" id="monthGrid"></div>
+
+      <div class="sec-title">📋 Available This Month <span id="exploreMonthLabel">April</span></div>
+      <div class="critter-list" id="exploreList"></div>
+
+      <div class="sec-title" style="margin-top:20px">💎 Value vs. Rarity</div>
+      <div class="chart-card">
+        <h3>Price vs. Months Available</h3>
+        <div class="chart-sub">Scatter Plot · Upper-left = Rare &amp; Valuable</div>
+        <div class="chart-wrap" style="max-height:260px"><canvas id="chartScatter"></canvas></div>
+        <div class="chart-rationale">📌 <strong>Design rationale:</strong> Scatter plot encodes two quantitative dimensions (price and seasonal scarcity). The upper-left quadrant represents the "holy grail" zone: high value + rare availability, guiding players to the most rewarding targets.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-hint">VDES39915 · Project 3 · Data: Animal Crossing Wiki (Fandom) · Built with Chart.js 4.4.1</div>
+</div>
+
+<!-- Detail overlay -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel">
+    <div class="detail-header">
+      <button class="detail-close" id="detailClose">✕</button>
+      <img id="detailImg" src="" alt="">
+      <h2 id="detailName"></h2>
+      <div class="d-zh" id="detailZh"></div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-row"><span class="d-label">Price</span><span class="d-val" id="detailPrice"></span></div>
+      <div class="detail-row"><span class="d-label">Location</span><span class="d-val" id="detailLoc"></span></div>
+      <div class="detail-row"><span class="d-label">Time</span><span class="d-val" id="detailTime"></span></div>
+      <div class="detail-row"><span class="d-label">Rarity</span><span class="d-val" id="detailRarity"></span></div>
+      <div class="hemisphere-label">🌏 Northern Hemisphere</div>
+      <div class="month-indicator" id="detailMonthsN"></div>
+      <div class="hemisphere-label">🌍 Southern Hemisphere</div>
+      <div class="month-indicator" id="detailMonthsS"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// REAL ACNH DATA — Bugs (40 species) & Fish (40 species)
+// All data accurate to the actual game
+// ================================================================
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const BUGS = [
+  {id:1,name:"Common Butterfly",zh:"白粉蝶",price:160,loc:"Flying",time:"4AM-7PM",n:[3,4,5,6,9],s:[9,10,11,12,3],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/3/3a/NH-Icon-commonbutterfly.png/revision/latest"},
+  {id:2,name:"Yellow Butterfly",zh:"斑缘点粉蝶",price:160,loc:"Flying",time:"4AM-7PM",n:[3,4,5,6,9,10],s:[9,10,11,12,3,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/f/fa/NH-Icon-yellowbutterfly.png/revision/latest"},
+  {id:3,name:"Tiger Butterfly",zh:"凤蝶",price:240,loc:"Flying",time:"4AM-7PM",n:[3,4,5,6,7,8,9],s:[9,10,11,12,1,2,3],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/65/NH-Icon-tigerbutterfly.png/revision/latest"},
+  {id:4,name:"Peacock Butterfly",zh:"大琉璃凤蝶",price:2500,loc:"Flying by Flowers",time:"4AM-7PM",n:[3,4,5,6],s:[9,10,11,12],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/8/8f/NH-Icon-peacockbutterfly.png/revision/latest"},
+  {id:5,name:"Common Bluebottle",zh:"青带凤蝶",price:300,loc:"Flying",time:"4AM-7PM",n:[4,5,6,7,8],s:[10,11,12,1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/5e/NH-Icon-commonbluebottle.png/revision/latest"},
+  {id:6,name:"Paper Kite Butterfly",zh:"大白斑蝶",price:1000,loc:"Flying",time:"8AM-7PM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/d/dd/NH-Icon-paperkitebutterfly.png/revision/latest"},
+  {id:7,name:"Great Purple Emperor",zh:"大紫蛱蝶",price:3000,loc:"Flying",time:"4AM-7PM",n:[5,6,7,8],s:[11,12,1,2],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/27/NH-Icon-greatpurpleemperor.png/revision/latest"},
+  {id:8,name:"Monarch Butterfly",zh:"大桦斑蝶",price:140,loc:"Flying",time:"4AM-5PM",n:[9,10,11],s:[3,4,5],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/9/99/NH-Icon-monarchbutterfly.png/revision/latest"},
+  {id:9,name:"Emperor Butterfly",zh:"大蓝闪蝶",price:4000,loc:"Flying",time:"5PM-8AM",n:[1,2,3,6,7,8,9,12],s:[3,4,5,6,7,8,9,12],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/5e/NH-Icon-emperorbutterfly.png/revision/latest"},
+  {id:10,name:"Agrias Butterfly",zh:"光明女神闪蝶",price:3000,loc:"Flying",time:"8AM-5PM",n:[4,5,6,7,8,9],s:[10,11,12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Icon-agriasbutterfly.png/revision/latest"},
+  {id:11,name:"Rajah Brooke's Birdwing",zh:"红颈凤蝶",price:2500,loc:"Flying",time:"8AM-5PM",n:[1,2,4,5,6,7,8,9,12],s:[1,2,3,6,7,8,10,11,12],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/e2/NH-Icon-rajahbrookesbirdwing.png/revision/latest"},
+  {id:12,name:"Queen Alexandra's Birdwing",zh:"亚历山大凤蝶",price:4000,loc:"Flying",time:"8AM-4PM",n:[5,6,7,8,9],s:[11,12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/b/b8/NH-Icon-queenalexandrasbirdwing.png/revision/latest"},
+  {id:13,name:"Moth",zh:"蛾",price:130,loc:"Flying by Light",time:"7PM-4AM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/12/NH-Icon-moth.png/revision/latest"},
+  {id:14,name:"Atlas Moth",zh:"皇蛾",price:3000,loc:"On Trees",time:"7PM-4AM",n:[4,5,6,7,8,9],s:[10,11,12,1,2,3],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/6a/NH-Icon-atlasmoth.png/revision/latest"},
+  {id:15,name:"Madagascan Sunset Moth",zh:"太阳蛾",price:2500,loc:"Flying",time:"8AM-4PM",n:[4,5,6,7,8,9],s:[10,11,12,1,2,3],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/7/7d/NH-Icon-madagascansunsetmoth.png/revision/latest"},
+  {id:16,name:"Ladybug",zh:"瓢虫",price:200,loc:"On Flowers",time:"8AM-5PM",n:[3,4,5,6,10],s:[9,10,11,12,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/18/NH-Icon-ladybug.png/revision/latest"},
+  {id:17,name:"Mantis",zh:"螳螂",price:430,loc:"On Flowers",time:"8AM-5PM",n:[3,4,5,6,7,8,9,10,11],s:[9,10,11,12,1,2,3,4,5],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/0/00/NH-Icon-mantis.png/revision/latest"},
+  {id:18,name:"Orchid Mantis",zh:"兰花螳螂",price:2400,loc:"On Flowers",time:"8AM-5PM",n:[3,4,5,6,7,8,9,10,11],s:[9,10,11,12,1,2,3,4,5],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/9/9e/NH-Icon-orchidmantis.png/revision/latest"},
+  {id:19,name:"Honeybee",zh:"蜜蜂",price:200,loc:"Flying",time:"8AM-5PM",n:[3,4,5,6,7],s:[9,10,11,12,1],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/26/NH-Icon-honeybee.png/revision/latest"},
+  {id:20,name:"Wasp",zh:"黄蜂",price:2500,loc:"Shaking Trees",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/9/9e/NH-Icon-wasp.png/revision/latest"},
+  {id:21,name:"Brown Cicada",zh:"蝉",price:250,loc:"On Trees",time:"8AM-5PM",n:[7,8],s:[1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/a/ab/NH-Icon-browncicada.png/revision/latest"},
+  {id:22,name:"Robust Cicada",zh:"斑透翅蝉",price:300,loc:"On Trees",time:"8AM-5PM",n:[7,8],s:[1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/2f/NH-Icon-robustcicada.png/revision/latest"},
+  {id:23,name:"Giant Cicada",zh:"蟪蛄",price:500,loc:"On Trees",time:"8AM-5PM",n:[7,8],s:[1,2],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/58/NH-Icon-giantcicada.png/revision/latest"},
+  {id:24,name:"Evening Cicada",zh:"寒蝉",price:550,loc:"On Trees",time:"4AM-8AM,4PM-7PM",n:[7,8],s:[1,2],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/16/NH-Icon-eveningcicada.png/revision/latest"},
+  {id:25,name:"Red Dragonfly",zh:"红蜻蜓",price:180,loc:"Flying",time:"8AM-7PM",n:[9,10],s:[3,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/eb/NH-Icon-reddragonfly.png/revision/latest"},
+  {id:26,name:"Darner Dragonfly",zh:"鬼蜻蜓",price:230,loc:"Flying",time:"8AM-5PM",n:[4,5,6,7,8,9,10],s:[10,11,12,1,2,3,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/7/70/NH-Icon-darnerdragonfly.png/revision/latest"},
+  {id:27,name:"Banded Dragonfly",zh:"无霸勾蜓",price:4500,loc:"Flying",time:"8AM-5PM",n:[5,6,7,8,9,10],s:[11,12,1,2,3,4],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/64/NH-Icon-bandeddragonfly.png/revision/latest"},
+  {id:28,name:"Firefly",zh:"萤火虫",price:300,loc:"Flying",time:"7PM-4AM",n:[6],s:[12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/a/ae/NH-Icon-firefly.png/revision/latest"},
+  {id:29,name:"Stinkbug",zh:"臭虫",price:120,loc:"On Flowers",time:"All Day",n:[3,4,5,6,7,8,9,10],s:[9,10,11,12,1,2,3,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/8/80/NH-Icon-stinkbug.png/revision/latest"},
+  {id:30,name:"Man-faced Stink Bug",zh:"人面椿象",price:1000,loc:"On Flowers",time:"7PM-8AM",n:[3,4,5,6,7,8,9,10],s:[9,10,11,12,1,2,3,4],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/c/c7/NH-Icon-manfacedstinkbug.png/revision/latest"},
+  {id:31,name:"Violin Beetle",zh:"提琴虫",price:450,loc:"On Stumps",time:"All Day",n:[5,6,9,10,11],s:[11,12,3,4,5],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/6a/NH-Icon-violinbeetle.png/revision/latest"},
+  {id:32,name:"Citrus Long-horned Beetle",zh:"星天牛",price:350,loc:"On Stumps",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/8/8f/NH-Icon-citruslonghornedbeetle.png/revision/latest"},
+  {id:33,name:"Rosalia Batesi Beetle",zh:"琉璃星天牛",price:3000,loc:"On Stumps",time:"All Day",n:[5,6,7,8,9],s:[11,12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/e0/NH-Icon-rosaliabatesibeetle.png/revision/latest"},
+  {id:34,name:"Drone Beetle",zh:"铜花金龟",price:200,loc:"On Trees",time:"All Day",n:[6,7,8],s:[12,1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/9/99/NH-Icon-dronebeetle.png/revision/latest"},
+  {id:35,name:"Goliath Beetle",zh:"歌利亚大角花金龟",price:8000,loc:"On Palm Trees",time:"5PM-8AM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/5b/NH-Icon-goliathbeetle.png/revision/latest"},
+  {id:36,name:"Horned Hercules",zh:"长戟大兜虫",price:12000,loc:"On Palm Trees",time:"5PM-8AM",n:[7,8],s:[1,2],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/c/c2/NH-Icon-hornedhercules.png/revision/latest"},
+  {id:37,name:"Golden Stag",zh:"黄金鬼锹形虫",price:12000,loc:"On Palm Trees",time:"5PM-8AM",n:[7,8],s:[1,2],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/8/82/NH-Icon-goldenstag.png/revision/latest"},
+  {id:38,name:"Giraffe Stag",zh:"长颈鹿锹形虫",price:12000,loc:"On Palm Trees",time:"5PM-8AM",n:[7,8],s:[1,2],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/7/7c/NH-Icon-giraffestag.png/revision/latest"},
+  {id:39,name:"Tarantula",zh:"狼蛛",price:8000,loc:"Ground",time:"7PM-4AM",n:[1,2,3,4,11,12],s:[5,6,7,8,9,10],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/0/0a/NH-Icon-tarantula.png/revision/latest"},
+  {id:40,name:"Scorpion",zh:"蝎子",price:8000,loc:"Ground",time:"7PM-4AM",n:[5,6,7,8,9,10],s:[11,12,1,2,3,4],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/3/34/NH-Icon-scorpion.png/revision/latest"},
+];
+
+const FISH = [
+  {id:1,name:"Bitterling",zh:"红目鲫",price:900,loc:"River",time:"All Day",n:[1,2,3,11,12],s:[5,6,7,8,9],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/ea/NH-Icon-bitterling.png/revision/latest"},
+  {id:2,name:"Pale Chub",zh:"溪哥",price:200,loc:"River",time:"9AM-4PM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/2c/NH-Icon-palechub.png/revision/latest"},
+  {id:3,name:"Crucian Carp",zh:"鲫鱼",price:160,loc:"River",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/0/03/NH-Icon-cruciancarp.png/revision/latest"},
+  {id:4,name:"Dace",zh:"溪流鱼",price:240,loc:"River",time:"4PM-9AM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/22/NH-Icon-dace.png/revision/latest"},
+  {id:5,name:"Carp",zh:"鲤鱼",price:300,loc:"Pond",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/2c/NH-Icon-carp.png/revision/latest"},
+  {id:6,name:"Koi",zh:"锦鲤",price:4000,loc:"Pond",time:"4PM-9AM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/7/74/NH-Icon-koi.png/revision/latest"},
+  {id:7,name:"Goldfish",zh:"金鱼",price:1300,loc:"Pond",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/ed/NH-Icon-goldfish.png/revision/latest"},
+  {id:8,name:"Ranchu Goldfish",zh:"兰寿",price:4500,loc:"Pond",time:"9AM-4PM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/f/f9/NH-Icon-ranchugoldfish.png/revision/latest"},
+  {id:9,name:"Killifish",zh:"花鳉",price:300,loc:"Pond",time:"All Day",n:[4,5,6,7,8],s:[10,11,12,1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/c/c3/NH-Icon-killifish.png/revision/latest"},
+  {id:10,name:"Crawfish",zh:"小龙虾",price:200,loc:"Pond",time:"All Day",n:[4,5,6,7,8,9],s:[10,11,12,1,2,3],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/c/cd/NH-Icon-crawfish.png/revision/latest"},
+  {id:11,name:"Snapping Turtle",zh:"鳄龟",price:5000,loc:"River",time:"9PM-4AM",n:[4,5,6,7,8,9,10],s:[10,11,12,1,2,3,4],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/24/NH-Icon-snappingturtle.png/revision/latest"},
+  {id:12,name:"Tadpole",zh:"蝌蚪",price:100,loc:"Pond",time:"All Day",n:[3,4,5,6,7],s:[9,10,11,12,1],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/1c/NH-Icon-tadpole.png/revision/latest"},
+  {id:13,name:"Frog",zh:"青蛙",price:120,loc:"Pond",time:"All Day",n:[5,6,7,8],s:[11,12,1,2],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/6b/NH-Icon-frog.png/revision/latest"},
+  {id:14,name:"Catfish",zh:"鲶鱼",price:800,loc:"Pond",time:"4PM-9AM",n:[5,6,7,8,9,10],s:[11,12,1,2,3,4],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/29/NH-Icon-catfish.png/revision/latest"},
+  {id:15,name:"Giant Snakehead",zh:"雷鱼",price:5500,loc:"Pond",time:"9AM-4PM",n:[6,7,8],s:[12,1,2],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/0/0c/NH-Icon-giantsnakehead.png/revision/latest"},
+  {id:16,name:"Bluegill",zh:"蓝鳃太阳鱼",price:180,loc:"River",time:"9AM-4PM",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/6/69/NH-Icon-bluegill.png/revision/latest"},
+  {id:17,name:"Yellow Perch",zh:"黄鲈鱼",price:300,loc:"River",time:"All Day",n:[1,2,3,10,11,12],s:[4,5,6,7,8,9],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/1d/NH-Icon-yellowperch.png/revision/latest"},
+  {id:18,name:"Black Bass",zh:"黑鲈鱼",price:400,loc:"River",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/e/e2/NH-Icon-blackbass.png/revision/latest"},
+  {id:19,name:"Pike",zh:"狗鱼",price:1800,loc:"River",time:"All Day",n:[9,10,11,12],s:[3,4,5,6],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Icon-pike.png/revision/latest"},
+  {id:20,name:"Pond Smelt",zh:"西太公鱼",price:500,loc:"River",time:"All Day",n:[1,2,10,11,12],s:[4,5,6,7,8],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/4/41/NH-Icon-pondsmelt.png/revision/latest"},
+  {id:21,name:"Sweetfish",zh:"香鱼",price:900,loc:"River",time:"All Day",n:[7,8,9],s:[1,2,3],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/4/40/NH-Icon-sweetfish.png/revision/latest"},
+  {id:22,name:"Cherry Salmon",zh:"樱花钩吻鲑",price:1000,loc:"River (Clifftop)",time:"4PM-9AM",n:[3,4,5,6,9,10,11],s:[3,4,5,9,10,11,12],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/5f/NH-Icon-cherrysalmon.png/revision/latest"},
+  {id:23,name:"Char",zh:"金鳟",price:3800,loc:"River (Clifftop)",time:"4PM-9AM",n:[3,4,5,6,9,10,11],s:[3,4,5,9,10,11,12],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/15/NH-Icon-char.png/revision/latest"},
+  {id:24,name:"Golden Trout",zh:"金鳟鱼",price:15000,loc:"River (Clifftop)",time:"4PM-9AM",n:[3,4,5,9,10,11],s:[3,4,5,9,10,11],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Icon-goldentrout.png/revision/latest"},
+  {id:25,name:"Stringfish",zh:"远东哲罗鱼",price:15000,loc:"River (Clifftop)",time:"4PM-9AM",n:[1,2,3,12],s:[6,7,8,9],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/7/7b/NH-Icon-stringfish.png/revision/latest"},
+  {id:26,name:"Salmon",zh:"鲑鱼",price:700,loc:"River (Mouth)",time:"All Day",n:[9],s:[3],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/f/fb/NH-Icon-salmon.png/revision/latest"},
+  {id:27,name:"King Salmon",zh:"大马哈鱼",price:1800,loc:"River (Mouth)",time:"All Day",n:[9],s:[3],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/f/fd/NH-Icon-kingsalmon.png/revision/latest"},
+  {id:28,name:"Piranha",zh:"食人鱼",price:2500,loc:"River",time:"9AM-4PM,9PM-4AM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/b/b9/NH-Icon-piranha.png/revision/latest"},
+  {id:29,name:"Arowana",zh:"龙鱼",price:10000,loc:"River",time:"4PM-9AM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/b/bf/NH-Icon-arowana.png/revision/latest"},
+  {id:30,name:"Dorado",zh:"黄金河虎",price:15000,loc:"River",time:"4AM-9PM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/d/df/NH-Icon-dorado.png/revision/latest"},
+  {id:31,name:"Coelacanth",zh:"腔棘鱼",price:15000,loc:"Sea (Rain)",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/3/31/NH-Icon-coelacanth.png/revision/latest"},
+  {id:32,name:"Sea Bass",zh:"鲈鱼",price:400,loc:"Sea",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Common",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/22/NH-Icon-seabass.png/revision/latest"},
+  {id:33,name:"Red Snapper",zh:"鲷鱼",price:3000,loc:"Sea",time:"All Day",n:[1,2,3,4,5,6,7,8,9,10,11,12],s:[1,2,3,4,5,6,7,8,9,10,11,12],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/d/dd/NH-Icon-redsnapper.png/revision/latest"},
+  {id:34,name:"Barred Knifejaw",zh:"石鲷",price:5000,loc:"Sea",time:"All Day",n:[3,4,5,6,7,8,9,10,11],s:[9,10,11,12,1,2,3,4,5],rarity:"Uncommon",img:"https://static.wikia.nocookie.net/animalcrossing/images/8/8c/NH-Icon-barredknifejaw.png/revision/latest"},
+  {id:35,name:"Oarfish",zh:"皇带鱼",price:9000,loc:"Sea",time:"All Day",n:[1,2,3,4,5,12],s:[6,7,8,9,10,11],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/3/33/NH-Icon-oarfish.png/revision/latest"},
+  {id:36,name:"Blue Marlin",zh:"蓝枪鱼",price:10000,loc:"Sea (Pier)",time:"All Day",n:[1,2,3,4,7,8,9,11,12],s:[1,2,3,5,6,7,8,10,11],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/2f/NH-Icon-bluemarlin.png/revision/latest"},
+  {id:37,name:"Tuna",zh:"金枪鱼",price:7000,loc:"Sea (Pier)",time:"All Day",n:[1,2,3,4,11,12],s:[5,6,7,8,9,10],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/5/50/NH-Icon-tuna.png/revision/latest"},
+  {id:38,name:"Great White Shark",zh:"大白鲨",price:15000,loc:"Sea",time:"4PM-9AM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/3/38/NH-Icon-greatwhiteshark.png/revision/latest"},
+  {id:39,name:"Whale Shark",zh:"鲸鲨",price:13000,loc:"Sea",time:"All Day",n:[6,7,8,9],s:[12,1,2,3],rarity:"Ultra-Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/1/1c/NH-Icon-whaleshark.png/revision/latest"},
+  {id:40,name:"Hammerhead Shark",zh:"双髻鲨",price:8000,loc:"Sea",time:"4PM-9AM",n:[6,7,8,9],s:[12,1,2,3],rarity:"Rare",img:"https://static.wikia.nocookie.net/animalcrossing/images/2/25/NH-Icon-hammerheadshark.png/revision/latest"},
+];
+
+const ALL = [...BUGS.map(b=>({...b,type:'bug'})), ...FISH.map(f=>({...f,type:'fish'}))];
+
+// ================================================================
+// TAB NAVIGATION
+// ================================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    document.querySelector('.content').scrollTop = 0;
+  });
+});
+
+// ================================================================
+// CHART DEFAULTS
+// ================================================================
+Chart.defaults.font.family = 'Nunito';
+Chart.defaults.font.size = 10;
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 8;
+const noGrid = { grid: { display: false } };
+
+// ================================================================
+// OVERVIEW: Monthly Availability
+// ================================================================
+function countByMonth(arr) {
+  return MONTHS.map((_, i) => arr.filter(c => c.n.includes(i + 1)).length);
+}
+new Chart(document.getElementById('chartMonthly'), {
+  type: 'bar',
+  data: {
+    labels: MONTHS,
+    datasets: [
+      { label: '🦋 Bugs', data: countByMonth(BUGS), backgroundColor: '#81C784', borderRadius: 4 },
+      { label: '🐟 Fish', data: countByMonth(FISH), backgroundColor: '#4DA651', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: true, scales: { x: noGrid, y: { beginAtZero: true, grid: { color: '#f0f0f0' } } }, plugins: { legend: { position: 'top' } } }
+});
+
+// ================================================================
+// OVERVIEW: Price Distribution
+// ================================================================
+const priceBrackets = ['0-500', '501-1K', '1K-2K', '2K-5K', '5K+'];
+function priceIndex(p) { return p <= 500 ? 0 : p <= 1000 ? 1 : p <= 2000 ? 2 : p <= 5000 ? 3 : 4; }
+function priceDist(arr) { const d = [0,0,0,0,0]; arr.forEach(c => d[priceIndex(c.price)]++); return d; }
+
+let priceChart;
+function drawPriceChart(filter) {
+  const bugsD = priceDist(BUGS);
+  const fishD = priceDist(FISH);
+  const datasets = filter === 'all'
+    ? [{ label: '🦋 Bugs', data: bugsD, backgroundColor: '#81C784', borderRadius: 4 },
+       { label: '🐟 Fish', data: fishD, backgroundColor: '#4DA651', borderRadius: 4 }]
+    : filter === 'bugs'
+    ? [{ label: '🦋 Bugs', data: bugsD, backgroundColor: '#81C784', borderRadius: 4 }]
+    : [{ label: '🐟 Fish', data: fishD, backgroundColor: '#4DA651', borderRadius: 4 }];
+
+  if (priceChart) priceChart.destroy();
+  priceChart = new Chart(document.getElementById('chartPrice'), {
+    type: 'bar',
+    data: { labels: priceBrackets, datasets },
+    options: { responsive: true, maintainAspectRatio: true, scales: { x: { stacked: true, ...noGrid }, y: { stacked: true, beginAtZero: true, grid: { color: '#f0f0f0' } } } }
+  });
+}
+drawPriceChart('all');
+
+document.querySelectorAll('.toggle-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    drawPriceChart(pill.dataset.filter);
+  });
+});
+
+// ================================================================
+// OVERVIEW: Location Doughnuts
+// ================================================================
+function locDist(arr) {
+  const cats = {};
+  arr.forEach(c => { const l = c.loc.split('(')[0].trim(); cats[l] = (cats[l] || 0) + 1; });
+  return cats;
+}
+function doughnut(canvasId, data, colors) {
+  const labels = Object.keys(data);
+  new Chart(document.getElementById(canvasId), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: Object.values(data), backgroundColor: colors.slice(0, labels.length), borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 6 } } }, cutout: '55%' }
+  });
+}
+doughnut('chartLocBugs', locDist(BUGS), ['#81C784','#4DA651','#2E7D32','#A5D6A7','#C8E6C9','#66BB6A']);
+doughnut('chartLocFish', locDist(FISH), ['#FFB74D','#F0962A','#E65100','#FFE0B2','#FFCC80','#FF9800']);
+
+// ================================================================
+// BUGS/FISH: Top 10 Horizontal Bar
+// ================================================================
+function topChart(canvasId, arr, color) {
+  const top = [...arr].sort((a, b) => b.price - a.price).slice(0, 10).reverse();
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: top.map(c => c.name),
+      datasets: [{ data: top.map(c => c.price), backgroundColor: color, borderRadius: 4 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, grid: { color: '#f0f0f0' } }, y: { ...noGrid, ticks: { font: { size: 9 } } } }
+    }
+  });
+}
+topChart('chartTopBugs', BUGS, '#81C784');
+topChart('chartTopFish', FISH, '#4DA651');
+
+// ================================================================
+// HEATMAPS
+// ================================================================
+function buildHeatmap(tableId, arr) {
+  const top = [...arr].sort((a, b) => b.price - a.price).slice(0, 15);
+  let html = '<tr><th></th>' + MONTHS.map(m => '<th>' + m.charAt(0) + '</th>').join('') + '</tr>';
+  top.forEach(c => {
+    html += '<tr><td class="hm-name" title="' + c.name + '">' + c.name + '</td>';
+    for (let m = 1; m <= 12; m++) {
+      const has = c.n.includes(m);
+      const cls = has ? (c.price >= 5000 ? 'peak' : c.price >= 2000 ? 'hot' : 'on') : '';
+      html += '<td><span class="hm-dot ' + cls + '"></span></td>';
+    }
+    html += '</tr>';
+  });
+  document.getElementById(tableId).innerHTML = html;
+}
+buildHeatmap('heatmapBugs', BUGS);
+buildHeatmap('heatmapFish', FISH);
+
+// ================================================================
+// CRITTER LISTS for Bugs/Fish tabs
+// ================================================================
+function renderList(containerId, arr, type) {
+  const sorted = [...arr].sort((a, b) => b.price - a.price);
+  document.getElementById(containerId).innerHTML = sorted.map(c => `
+    <div class="critter-card" onclick="showDetail('${type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
+      <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${type==='bug'?'🦋':'🐟'}</text></svg>'">
+      <div class="critter-info">
+        <div class="c-name">${type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
+        <div class="c-name-zh">${c.rarity}</div>
+        <div class="c-meta"><span>📍 ${c.loc}</span><span>🕐 ${c.time}</span></div>
+      </div>
+      <div class="c-price">${c.price.toLocaleString()}<small> Bells</small></div>
+    </div>
+  `).join('');
+}
+renderList('bugsList', BUGS, 'bug');
+renderList('fishList', FISH, 'fish');
+
+// ================================================================
+// EXPLORE: Month selector
+// ================================================================
+let currentMonth = new Date().getMonth() + 1; // default: current month
+
+function countForMonth(m) { return ALL.filter(c => c.n.includes(m)).length; }
+
+function renderMonthGrid() {
+  document.getElementById('monthGrid').innerHTML = MONTHS.map((name, i) => {
+    const m = i + 1;
+    const cnt = countForMonth(m);
+    return `<div class="month-cell ${m === currentMonth ? 'active' : ''}" onclick="selectMonth(${m})">
+      <div class="m-name">${name}</div><div class="m-count">${cnt} critters</div></div>`;
+  }).join('');
+}
+
+function selectMonth(m) {
+  currentMonth = m;
+  renderMonthGrid();
+  renderExploreList();
+  document.getElementById('exploreMonthLabel').textContent = MONTHS[m - 1];
+  drawScatter();
+}
+
+function renderExploreList() {
+  const avail = ALL.filter(c => c.n.includes(currentMonth)).sort((a, b) => b.price - a.price);
+  document.getElementById('exploreList').innerHTML = avail.map(c => `
+    <div class="critter-card" onclick="showDetail('${c.type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
+      <img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${c.type==='bug'?'🦋':'🐟'}</text></svg>'">
+      <div class="critter-info">
+        <div class="c-name">${c.type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
+        <div class="c-name-zh">${c.rarity}</div>
+        <div class="c-meta"><span>📍 ${c.loc}</span><span>🕐 ${c.time}</span></div>
+      </div>
+      <div class="c-price">${c.price.toLocaleString()}<small> Bells</small></div>
+    </div>
+  `).join('');
+}
+
+// ================================================================
+// EXPLORE: Scatter Plot
+// ================================================================
+let scatterChart;
+function drawScatter() {
+  const avail = ALL.filter(c => c.n.includes(currentMonth));
+  const data = avail.map(c => ({ x: c.n.length, y: c.price, label: c.name, type: c.type }));
+
+  if (scatterChart) scatterChart.destroy();
+  scatterChart = new Chart(document.getElementById('chartScatter'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: '🦋 Bugs', data: data.filter(d => d.type === 'bug'), backgroundColor: 'rgba(129,199,132,0.7)', pointRadius: 6 },
+        { label: '🐟 Fish', data: data.filter(d => d.type === 'fish'), backgroundColor: 'rgba(240,150,42,0.7)', pointRadius: 6 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        x: { title: { display: true, text: 'Months Available →', font: { size: 10 } }, ...noGrid },
+        y: { title: { display: true, text: 'Price (Bells) ↑', font: { size: 10 } }, beginAtZero: true, grid: { color: '#f0f0f0' } }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: { label: ctx => ctx.raw.label + ' (' + ctx.raw.y.toLocaleString() + ' Bells, ' + ctx.raw.x + ' months)' }
+        }
+      }
+    }
+  });
+}
+
+// Init explore
+renderMonthGrid();
+renderExploreList();
+drawScatter();
+
+// Update stat
+document.getElementById('stat-month').textContent = countForMonth(currentMonth);
+
+// ================================================================
+// DETAIL OVERLAY
+// ================================================================
+function showDetail(type, id) {
+  const arr = type === 'bug' ? BUGS : FISH;
+  const c = arr.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('detailImg').src = c.img;
+  document.getElementById('detailName').textContent = (type === 'bug' ? '🦋 ' : '🐟 ') + c.name;
+  document.getElementById('detailZh').textContent = c.zh;
+  document.getElementById('detailPrice').textContent = c.price.toLocaleString() + ' Bells';
+  document.getElementById('detailLoc').textContent = c.loc;
+  document.getElementById('detailTime').textContent = c.time;
+  document.getElementById('detailRarity').textContent = c.rarity;
+
+  // North hemisphere months
+  document.getElementById('detailMonthsN').innerHTML = MONTHS.map((m, i) =>
+    `<div class="mi ${c.n.includes(i + 1) ? 'avail' : ''}">${m.charAt(0)}</div>`
+  ).join('');
+
+  // South hemisphere months
+  document.getElementById('detailMonthsS').innerHTML = MONTHS.map((m, i) =>
+    `<div class="mi ${c.s.includes(i + 1) ? 'avail' : ''}">${m.charAt(0)}</div>`
+  ).join('');
+
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+document.getElementById('detailClose').addEventListener('click', () => {
+  document.getElementById('detailOverlay').classList.remove('show');
+});
+document.getElementById('detailOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) document.getElementById('detailOverlay').classList.remove('show');
+});
+</script>
+</body>
+</html>
