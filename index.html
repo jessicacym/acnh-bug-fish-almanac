@@ -116,7 +116,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 .heatmap-table td{padding:3px;text-align:center}
 .hm-name{text-align:left!important;font-weight:700;color:var(--brown);white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis;font-size:8px}
 .hm-dot{display:inline-block;width:14px;height:14px;border-radius:3px;background:#eee}
-.hm-dot.on{background:#A5D6A7}.hm-dot.hot{background:var(--green)}.hm-dot.peak{background:var(--green-dark)}
+.hm-dot.on{background:#90CAF9}.hm-dot.hot{background:#FF9800}.hm-dot.peak{background:#F44336}
 
 /* Bottom nav hint */
 .bottom-hint{padding:8px;text-align:center;font-size:9px;color:#ccc;flex-shrink:0;background:#fff;border-top:1px solid #eee}
@@ -127,10 +127,7 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
 .api-time{margin-left:auto;color:#999;font-weight:400}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* Highlight price card */
-.highlight-card{border:2px solid var(--orange)!important;background:linear-gradient(135deg,#FFF8E1,#fff)!important;position:relative;overflow:hidden}
-.highlight-card::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.3) 50%,transparent 60%);animation:shimmer 3s infinite}
-@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+/* (highlight card removed per user request) */
 .animate-price{animation:countUp 1s ease-out}
 @keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
@@ -184,10 +181,10 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card"><div class="s-icon">🦋</div><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
-        <div class="stat-card"><div class="s-icon">🐟</div><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=bugs]').click()"><div class="s-icon">🦋</div><div class="s-num" id="stat-bugs">80</div><div class="s-label">Total Bugs</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="document.querySelector('[data-tab=fish]').click()"><div class="s-icon">🐟</div><div class="s-num" id="stat-fish">80</div><div class="s-label">Total Fish</div></div>
         <div class="stat-card"><div class="s-icon">📅</div><div class="s-num" id="stat-month">--</div><div class="s-label">Available This Month</div></div>
-        <div class="stat-card highlight-card" id="highPriceCard"><div class="s-icon">💰</div><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
+        <div class="stat-card" id="highPriceCard"><div class="s-icon">💰</div><div class="s-num animate-price" id="stat-highprice">15,000</div><div class="s-label" id="stat-highname">Highest Price</div></div>
       </div>
 
       <!-- Top Earner This Month (dynamic) -->
@@ -208,8 +205,8 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
         <div class="chart-sub">Stacked Bar · Price Brackets</div>
         <div class="toggle-group">
           <span class="toggle-pill active" data-filter="all">All</span>
-          <span class="toggle-pill" data-filter="bugs">🦋 Bugs</span>
-          <span class="toggle-pill" data-filter="fish">🐟 Fish</span>
+          <span class="toggle-pill" data-filter="bugs">Bugs</span>
+          <span class="toggle-pill" data-filter="fish">Fish</span>
         </div>
         <div class="chart-wrap"><canvas id="chartPrice"></canvas></div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Stacked bar chart shows the proportion of bugs vs. fish within each price bracket. Helps players quickly identify which category holds more high-value species.</div>
@@ -242,8 +239,8 @@ body{font-family:'Nunito',sans-serif;background:#E8F5E9;display:flex;justify-con
         <h3>Bug vs. Fish Spawn Locations</h3>
         <div class="chart-sub">Doughnut · Spawn Location Comparison</div>
         <div class="doughnut-row">
-          <div class="doughnut-item"><canvas id="chartLocBugs" width="120" height="120"></canvas><div class="doughnut-label">🦋 Bugs</div></div>
-          <div class="doughnut-item"><canvas id="chartLocFish" width="120" height="120"></canvas><div class="doughnut-label">🐟 Fish</div></div>
+          <div class="doughnut-item"><canvas id="chartLocBugs" width="120" height="120"></canvas><div class="doughnut-label">Bugs</div></div>
+          <div class="doughnut-item"><canvas id="chartLocFish" width="120" height="120"></canvas><div class="doughnut-label">Fish</div></div>
         </div>
         <div class="chart-rationale">📌 <strong>Design rationale:</strong> Dual doughnut charts allow at-a-glance comparison of spawn location diversity between bugs and fish, helping players decide where to hunt.</div>
       </div>
@@ -458,8 +455,8 @@ new Chart(document.getElementById('chartMonthly'), {
   data: {
     labels: MONTHS,
     datasets: [
-      { label: '🦋 Bugs', data: countByMonth(BUGS), backgroundColor: '#81C784', borderRadius: 4 },
-      { label: '🐟 Fish', data: countByMonth(FISH), backgroundColor: '#4DA651', borderRadius: 4 }
+      { label: 'Bugs', data: countByMonth(BUGS), backgroundColor: '#2196F3', borderRadius: 4 },
+      { label: 'Fish', data: countByMonth(FISH), backgroundColor: '#FF9800', borderRadius: 4 }
     ]
   },
   options: { responsive: true, maintainAspectRatio: true, scales: { x: noGrid, y: { beginAtZero: true, grid: { color: '#f0f0f0' } } }, plugins: { legend: { position: 'top' } } }
@@ -477,11 +474,11 @@ function drawPriceChart(filter) {
   const bugsD = priceDist(BUGS);
   const fishD = priceDist(FISH);
   const datasets = filter === 'all'
-    ? [{ label: '🦋 Bugs', data: bugsD, backgroundColor: '#81C784', borderRadius: 4 },
-       { label: '🐟 Fish', data: fishD, backgroundColor: '#4DA651', borderRadius: 4 }]
+    ? [{ label: 'Bugs', data: bugsD, backgroundColor: '#2196F3', borderRadius: 4 },
+       { label: 'Fish', data: fishD, backgroundColor: '#FF9800', borderRadius: 4 }]
     : filter === 'bugs'
-    ? [{ label: '🦋 Bugs', data: bugsD, backgroundColor: '#81C784', borderRadius: 4 }]
-    : [{ label: '🐟 Fish', data: fishD, backgroundColor: '#4DA651', borderRadius: 4 }];
+    ? [{ label: 'Bugs', data: bugsD, backgroundColor: '#2196F3', borderRadius: 4 }]
+    : [{ label: 'Fish', data: fishD, backgroundColor: '#FF9800', borderRadius: 4 }];
 
   if (priceChart) priceChart.destroy();
   priceChart = new Chart(document.getElementById('chartPrice'), {
@@ -516,8 +513,8 @@ function doughnut(canvasId, data, colors) {
     options: { responsive: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 6 } } }, cutout: '55%' }
   });
 }
-doughnut('chartLocBugs', locDist(BUGS), ['#81C784','#4DA651','#2E7D32','#A5D6A7','#C8E6C9','#66BB6A']);
-doughnut('chartLocFish', locDist(FISH), ['#FFB74D','#F0962A','#E65100','#FFE0B2','#FFCC80','#FF9800']);
+doughnut('chartLocBugs', locDist(BUGS), ['#2196F3','#42A5F5','#1565C0','#90CAF9','#BBDEFB','#1E88E5']);
+doughnut('chartLocFish', locDist(FISH), ['#FF9800','#FFA726','#E65100','#FFE0B2','#FFCC80','#F57C00']);
 
 // ================================================================
 // BUGS/FISH: Top 10 Horizontal Bar
@@ -537,8 +534,8 @@ function topChart(canvasId, arr, color) {
     }
   });
 }
-topChart('chartTopBugs', BUGS, '#81C784');
-topChart('chartTopFish', FISH, '#4DA651');
+topChart('chartTopBugs', BUGS, '#2196F3');
+topChart('chartTopFish', FISH, '#F44336');
 
 // ================================================================
 // HEATMAPS
@@ -569,7 +566,7 @@ function renderList(containerId, arr, type) {
     <div class="critter-card" onclick="showDetail('${type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
       <img src="${c.img}" alt="${c.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${type==='bug'?'🦋':'🐟'}</text></svg>'">
       <div class="critter-info">
-        <div class="c-name">${type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
+        <div class="c-name">${c.name}</div>
         <div class="c-name-zh">${c.rarity}</div>
         <div class="c-meta"><span>📍 ${c.loc}</span><span>🕐 ${c.time}</span></div>
       </div>
@@ -610,7 +607,7 @@ function renderExploreList() {
     <div class="critter-card" onclick="showDetail('${c.type}',${c.id})" role="button" tabindex="0" aria-label="${c.name}, ${c.price} Bells">
       <img src="${c.img}" alt="${c.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${c.type==='bug'?'🦋':'🐟'}</text></svg>'">
       <div class="critter-info">
-        <div class="c-name">${c.type === 'bug' ? '🦋' : '🐟'} ${c.name}</div>
+        <div class="c-name">${c.name}</div>
         <div class="c-name-zh">${c.rarity}</div>
         <div class="c-meta"><span>📍 ${c.loc}</span><span>🕐 ${c.time}</span></div>
       </div>
@@ -632,8 +629,8 @@ function drawScatter() {
     type: 'scatter',
     data: {
       datasets: [
-        { label: '🦋 Bugs', data: data.filter(d => d.type === 'bug'), backgroundColor: 'rgba(129,199,132,0.7)', pointRadius: 6 },
-        { label: '🐟 Fish', data: data.filter(d => d.type === 'fish'), backgroundColor: 'rgba(240,150,42,0.7)', pointRadius: 6 }
+        { label: 'Bugs', data: data.filter(d => d.type === 'bug'), backgroundColor: 'rgba(33,150,243,0.7)', pointRadius: 6 },
+        { label: 'Fish', data: data.filter(d => d.type === 'fish'), backgroundColor: 'rgba(244,67,54,0.7)', pointRadius: 6 }
       ]
     },
     options: {
@@ -678,7 +675,7 @@ function updateTopEarner() {
   document.getElementById('topEarnerCard').innerHTML = `
     <img src="${top.img}" alt="${top.name}" referrerpolicy="no-referrer" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><text y=%2228%22 x=%224%22 font-size=%2224%22>${top.type==='bug'?'🦋':'🐟'}</text></svg>'">
     <div class="top-earner-info">
-      <div class="te-name">${top.type==='bug'?'🦋':'🐟'} ${top.name}</div>
+      <div class="te-name">${top.name}</div>
       <div class="te-meta">${top.rarity} · ${top.loc} · ${top.time}</div>
       <div class="price-compare-bar">
         <div class="pcb-base" style="width:${(top.price/barMax)*100}%"></div>
@@ -712,8 +709,8 @@ function drawBonusChart(count) {
     data: {
       labels: combined.map(c => c.name),
       datasets: [
-        { label: 'Base Price', data: combined.map(c => c.price), backgroundColor: '#FFB74D', borderRadius: 4 },
-        { label: 'Flick/CJ 1.5×', data: combined.map(c => Math.floor(c.price * 1.5)), backgroundColor: '#4DA651', borderRadius: 4 }
+        { label: 'Base Price', data: combined.map(c => c.price), backgroundColor: '#FFC107', borderRadius: 4 },
+        { label: 'Flick/CJ 1.5×', data: combined.map(c => Math.floor(c.price * 1.5)), backgroundColor: '#F44336', borderRadius: 4 }
       ]
     },
     options: {
@@ -749,9 +746,9 @@ new Chart(document.getElementById('chartTrend'), {
   data: {
     labels: MONTHS,
     datasets: [
-      { label: '🦋 Bugs Total', data: monthlyPotential(BUGS), borderColor: '#81C784', backgroundColor: 'rgba(129,199,132,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#81C784' },
-      { label: '🐟 Fish Total', data: monthlyPotential(FISH), borderColor: '#F0962A', backgroundColor: 'rgba(240,150,42,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#F0962A' },
-      { label: '📊 Combined', data: MONTHS.map((_, i) => monthlyPotential(BUGS)[i] + monthlyPotential(FISH)[i]), borderColor: '#2E7D32', borderDash: [4,4], fill: false, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#2E7D32' }
+      { label: 'Bugs Total', data: monthlyPotential(BUGS), borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#2196F3' },
+      { label: 'Fish Total', data: monthlyPotential(FISH), borderColor: '#FF9800', backgroundColor: 'rgba(255,152,0,0.15)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#FF9800' },
+      { label: 'Combined', data: MONTHS.map((_, i) => monthlyPotential(BUGS)[i] + monthlyPotential(FISH)[i]), borderColor: '#9C27B0', borderDash: [4,4], fill: false, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#9C27B0' }
     ]
   },
   options: {
@@ -793,8 +790,8 @@ function showDetail(type, id) {
   if (!c) return;
 
   document.getElementById('detailImg').src = c.img;
-  document.getElementById('detailName').textContent = (type === 'bug' ? '🦋 ' : '🐟 ') + c.name;
-  document.getElementById('detailZh').textContent = c.zh;
+  document.getElementById('detailName').textContent = c.name;
+  document.getElementById('detailZh').textContent = c.rarity;
   document.getElementById('detailPrice').textContent = c.price.toLocaleString() + ' Bells';
   document.getElementById('detailLoc').textContent = c.loc;
   document.getElementById('detailTime').textContent = c.time;
